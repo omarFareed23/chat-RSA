@@ -1,30 +1,12 @@
 import socket
-import os
-from dotenv import load_dotenv
 import sys
 sys.path.append('..')
-from RSA import encrypt, decrypt
-
-##### load envs #####
-load_dotenv()
-#####################
+from RSA import encrypt, decrypt, generate_public_and_private_key
 
 ### connection port ### 
 HOST = 'localhost'
 PORT = 5000
 #######################
-
-
-### public key ### 
-n_client = int(os.getenv('N_CLIENT'))
-d_client = int(os.getenv('D_CLIENT'))
-###################
-
-### private key ###
-e_server = int(os.getenv('E_SERVER'))
-d_server = int(os.getenv('D_SERVER'))
-n_server = int(os.getenv('N_SERVER'))
-#################
 
 # Create a socket object
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -42,6 +24,13 @@ client_socket, client_address = server_socket.accept()
 
 print('Connected by', client_address)
 
+public_key, private_key = generate_public_and_private_key(64)
+d_server, n_server = public_key
+e_server, n_server = private_key
+sent_public_key = f"{d_server}|{n_server}"
+client_public_key = list(map(int,client_socket.recv(1024).decode().split("|")))
+client_socket.sendall(sent_public_key.encode())
+
 while True:
     # Receive data from the client
     data = client_socket.recv(1024).decode()
@@ -50,8 +39,7 @@ while True:
         break
 
     # Print the received message
-    print(data)
-    print('Received message:', decrypt(data, d_client, n_client))
+    print('Received message:', decrypt(data, client_public_key[0], client_public_key[1]))
 
     # Send a response back to the client
     response = encrypt(input('Enter response: '), e_server, n_server)

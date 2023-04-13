@@ -1,4 +1,7 @@
-# get the order of a character
+import random
+from math import gcd
+
+
 def order(chr: str) -> int:
     if len(chr) != 1:
         raise ValueError("order() expects a single character")
@@ -55,9 +58,43 @@ def decrypt(message: str, d: int, n: int) -> str:
         decrypted_message += decrypted_submessage
     return decrypted_message
 
-def generate_public_and_private_key(p:int, q:int,e:int) -> tuple:
+
+def generate_random_prime_number(nbits: int) -> int:
+    while True:
+        # generate random number with n bits
+        number = random.getrandbits(nbits)
+        if is_prime(number):
+            return number
+
+
+def generate_coprime_nubmer(n: int) -> int:
+    while True:
+        number = random.randint(n // 2, n)
+        if gcd(n, number) == 1:
+            return number
+
+
+def is_prime(number: int) -> bool:
+    if number <= 1:
+        return False
+    if number % 2 == 0:
+        return False
+    i = 3
+    while i * i <= number:
+        if number % i == 0:
+            return False
+        i += 2
+    return True
+
+
+def generate_public_and_private_key(nbits: int) -> tuple:
+    p = generate_random_prime_number(nbits // 2)
+    q = generate_random_prime_number((nbits + 1) // 2)
     n = p * q
     phi = (p - 1) * (q - 1)
+    e = generate_coprime_nubmer(phi)
     d = pow(e, -1, phi)
-    return (e, n), (d, n)
+    return (d, n), (e, n)
+
+# generate_public_and_private_key(64)
 

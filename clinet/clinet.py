@@ -1,31 +1,7 @@
 import socket
-import os
-from dotenv import load_dotenv
 import sys
 sys.path.append('..')
-from RSA import encrypt, decrypt
-
-##### load envs #####
-load_dotenv()
-#####################
-
-### connection port ### 
-HOST = 'localhost'
-PORT = 5000
-#######################
-
-
-### private key ### 
-n_client = int(os.getenv('N_CLIENT'))
-d_client = int(os.getenv('D_CLIENT'))
-e_client = int(os.getenv('E_CLIENT'))
-###################
-
-### public key ###
-d_server = int(os.getenv('D_SERVER'))
-n_server = int(os.getenv('N_SERVER'))
-#################
-
+from RSA import encrypt, decrypt, generate_public_and_private_key
 
 # Define host and port
 HOST = 'localhost'
@@ -36,6 +12,14 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Connect to the server
 client_socket.connect((HOST, PORT))
+
+public_key, private_key = generate_public_and_private_key(64)
+d_client, n_client = public_key
+e_client, n_client = private_key
+sent_public_key = f"{d_client}|{n_client}"
+client_socket.sendall(sent_public_key.encode())
+server_public_key = client_socket.recv(1024).decode().split("|")
+server_public_key = list(map(int, server_public_key))
 
 while True:
     # Get user input
@@ -48,7 +32,7 @@ while True:
     data = client_socket.recv(1024).decode()
 
     # Print the response
-    print('Received response:', decrypt(data, d_server, n_server))
+    print('Received response:', decrypt(data, server_public_key[0], server_public_key[1]))
 
 # Close the connection
 client_socket.close()
