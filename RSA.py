@@ -54,3 +54,10 @@ def decrypt(message: str, d: int, n: int) -> str:
         decrypted_submessage = decrypt_submessage(int(submessage), d, n)
         decrypted_message += decrypted_submessage
     return decrypted_message
+
+def generate_public_and_private_key(p:int, q:int,e:int) -> tuple:
+    n = p * q
+    phi = (p - 1) * (q - 1)
+    d = pow(e, -1, phi)
+    return (e, n), (d, n)
+
