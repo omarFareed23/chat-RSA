@@ -1,3 +1,4 @@
+from RSA import encrypt, decrypt
 import socket
 
 # Define host and port
